@@ -24,24 +24,6 @@ servers = [
 end
 
 class StunMessageHeader < BinData::Record
-  MESSAGE_TYPES = {
-    0x0001 => :binding_request,
-    0x0101 => :binding_response,
-    0x0111 => :binding_error_response,
-    0x0002 => :shared_secret_request,
-    0x0102 => :shared_secret_response,
-    0x0112 => :shared_secret_error_response
-  }.freeze
-
-  endian :big
-
-  uint16 :message_type
-  uint16 :message_length
-  string :transaction_id, length: 16
-
-  def message_type_name
-    MESSAGE_TYPES.fetch(message_type)
-  end
 end
 
 class AddressAttributeValue < BinData::Record
@@ -97,63 +79,40 @@ class StunMessageAttribute < BinData::Record
 end
 
 class StunMessage < BinData::Record
-  endian :big
-  stun_message_header :header
-  buffer :attributes, type: :stun_message_attribute, length: lambda { header.message_length }
-end
-
-class StunHeader
   MESSAGE_TYPES = {
-    binding_request: 0x001,
-    binding_response: 0x0101,
-    binding_error_response: 0x0111,
-    shared_secret_request: 0x002,
-    shared_secret_response: 0x0102,
-    shared_secret_error_response: 0x0112,
-  }
+    0x0001 => :binding_request,
+    0x0101 => :binding_response,
+    0x0111 => :binding_error_response,
+    0x0002 => :shared_secret_request,
+    0x0102 => :shared_secret_response,
+    0x0112 => :shared_secret_error_response
+  }.freeze
 
-  attr_reader :message_type, :message_length, :transaction_id
+  endian :big
 
-  def initialize(type, length = 0, transaction_id = SecureRandom.alphanumeric(16))
-    @message_type = type
-    @message_length = length
-    @transaction_id = transaction_id
-  end
+  uint16 :message_type
+  uint16 :message_length, initial_value: 0
+  string :transaction_id, length: 16, initial_value: lambda { SecureRandom.alphanumeric(16) }
+  buffer :attributes, type: :stun_message_attribute, length: lambda { message_length }, onlyif: lambda { message_length > 0 }
 
-  def to_data
-    [
-      message_type,
-      message_length,
-      transaction_id
-    ].pack('nna16')
-  end
-
-  def self.from_data(data)
-    message_type, message_length, transaction_id = data.unpack('nna16')
-    new(message_type, message_length, transaction_id)
+  def message_type_name
+    MESSAGE_TYPES.fetch(message_type)
   end
 end
-
-header = StunHeader.new(StunHeader::MESSAGE_TYPES[:binding_request])
-
-payload = header.to_data
-
-puts payload.inspect
-puts StunHeader.from_data(payload).inspect
 
 
 host = '108.177.14.127'
 port = 19302
 
+payload = StunMessage.new(message_type: 0x0001).to_binary_s
+
 socket = UDPSocket.new
 iden = "#{host} #{port}"
 puts "Testing #{iden}"
 socket.connect(host, port)
-puts socket.inspect
 socket.send(payload, 0, host, port)
 resp = socket.recv(1024)
+
 msg = StunMessage.read(resp)
 puts "Response #{msg.inspect}"
-puts "MessageType #{msg.header.message_type_name}"
 
-puts "Response from #{iden} #{resp.inspect}"
