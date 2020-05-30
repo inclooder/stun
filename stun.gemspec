@@ -1,16 +1,16 @@
 
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "stun/client/version"
+require "stun"
 
 Gem::Specification.new do |spec|
   spec.name          = "stun"
-  spec.version       = Stun::Client::VERSION
+  spec.version       = Stun::VERSION
   spec.authors       = ["Mateusz Kluge"]
   spec.email         = ["inclooder@gmail.com"]
 
-  spec.summary       = %q{Stun}
-  spec.description   = %q{Stun}
+  spec.summary       = %q{Stun client}
+  spec.description   = %q{Stun client}
   spec.homepage      = "http://github.com"
   spec.license       = "MIT"
 
