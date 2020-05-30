@@ -4,13 +4,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "stun/client/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "stun-client"
+  spec.name          = "stun"
   spec.version       = Stun::Client::VERSION
   spec.authors       = ["Mateusz Kluge"]
   spec.email         = ["inclooder@gmail.com"]
 
-  spec.summary       = %q{Stun client}
-  spec.description   = %q{Stun client}
+  spec.summary       = %q{Stun}
+  spec.description   = %q{Stun}
   spec.homepage      = "http://github.com"
   spec.license       = "MIT"
 

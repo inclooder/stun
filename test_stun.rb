@@ -3,25 +3,7 @@ require 'socket'
 require 'securerandom'
 require 'bindata'
 
-#dokumentacja https://tools.ietf.org/html/rfc3489
-
-servers = [
-  "stun.l.google.com:19302",
-  "stun1.l.google.com:19302",
-  "stun2.l.google.com:19302",
-  "stun3.l.google.com:19302",
-  "stun4.l.google.com:19302",
-  "stun.ekiga.net:3478",
-  "stun.ideasip.com:3478",
-  "stun.schlund.de:3478",
-  "stun.stunprotocol.org:3478",
-  "stun.voiparound.com:3478",
-  "stun.voipbuster.com:3478",
-  "stun.voipstunt.com:3478",
-].map do |addr|
-  host, port = addr.split(':')
-  { host: host, port: port.to_i }
-end
+#https://tools.ietf.org/html/rfc3489
 
 class StunMessageHeader < BinData::Record
 end
@@ -100,7 +82,6 @@ class StunMessage < BinData::Record
   end
 end
 
-
 host = '108.177.14.127'
 port = 19302
 
@@ -115,4 +96,3 @@ resp = socket.recv(1024)
 
 msg = StunMessage.read(resp)
 puts "Response #{msg.inspect}"
-
