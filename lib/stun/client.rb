@@ -80,7 +80,7 @@ module Stun
       end
     end
 
-    def initialize(options)
+    def initialize(options = {})
       @host = options.fetch(:host, '108.177.14.127')
       @port = options.fetch(:port, 19302)
     end
@@ -93,7 +93,11 @@ module Stun
       resp = socket.recv(1024)
 
       msg = StunMessage.read(resp)
-      puts "Response #{msg.inspect}"
+      attr = msg[:attributes][:attribute_value]
+      {
+        id: "#{attr[:ip_a]}.#{attr[:ip_b]}.#{attr[:ip_c]}.#{attr[:ip_d]}",
+        port: attr[:port]
+      }
     end
   end
 end
