@@ -21,8 +21,11 @@ Or install it yourself as:
 ```ruby
 require 'stun'
 
+socket = UDPSocket.new
 client = Stun::Client.new(host: '108.177.14.127', port: 19302)
-client.query_address
+response = client.query(socket: socket)
+response.ip # external ip
+response.port # external port
 ```
 
 

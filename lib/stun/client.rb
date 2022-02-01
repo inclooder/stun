@@ -47,8 +47,7 @@ module Stun
 
       uint16 :value_type
       uint16 :value_length
-      # buffer :attribute_value, type: :uint8, length: :value_length
-      choice :attribute_value, selection: lambda { value_type }, choices: {
+      choice :attribute_value, selection: -> { value_type }, choices: {
         0x0001 => :mapped_address,
         0x0002 => :response_address,
       }
@@ -72,32 +71,33 @@ module Stun
 
       uint16 :message_type
       uint16 :message_length, initial_value: 0
-      string :transaction_id, length: 16, initial_value: lambda { SecureRandom.alphanumeric(16) }
-      buffer :attributes, type: :stun_message_attribute, length: lambda { message_length }, onlyif: lambda { message_length > 0 }
+      string :transaction_id, length: 16, initial_value: -> { SecureRandom.alphanumeric(16) }
+      buffer :attributes, type: :stun_message_attribute, length: -> { message_length }, onlyif: -> { message_length > 0 }
 
       def message_type_name
         MESSAGE_TYPES.fetch(message_type)
       end
     end
 
-    def initialize(options = {})
-      @host = options.fetch(:host, '108.177.14.127')
-      @port = options.fetch(:port, 19302)
+    def initialize(host:, port:)
+      @host = host
+      @port = port
     end
 
-    def query_address
+    def query(socket:)
       payload = StunMessage.new(message_type: 0x0001).to_binary_s
-      socket = UDPSocket.new
-      socket.connect(@host, @port)
-      socket.send(payload, 0, @host, @port)
+      socket.send(payload, 0, host, port)
       resp = socket.recv(1024)
 
       msg = StunMessage.read(resp)
       attr = msg[:attributes][:attribute_value]
-      {
-        id: "#{attr[:ip_a]}.#{attr[:ip_b]}.#{attr[:ip_c]}.#{attr[:ip_d]}",
-        port: attr[:port]
-      }
+      QueryResponse.new(ip: attr.ip, port: attr[:port])
     end
+
+    private
+
+    QueryResponse = Struct.new(:ip, :port, keyword_init: true)
+
+    attr_reader :host, :port
   end
 end
